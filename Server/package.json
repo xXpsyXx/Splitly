@@ -2,7 +2,7 @@
   "name": "expense-splitter-server",
   "version": "1.0.0",
   "description": "Expense Splitter Backend API",
-  "main": "server.js",
+  "main": "index.js",
   "type": "module",
   "scripts": {
     "start": "node server.js",
