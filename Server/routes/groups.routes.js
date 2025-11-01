@@ -73,6 +73,8 @@ router.post("/", async (req, res) => {
 
     res.status(201).json({ group });
   } catch (error) {
+    console.error("Group creation error:", error);
+    console.error("User data:", req.user);
     res.status(500).json({ error: error.message });
   }
 });
