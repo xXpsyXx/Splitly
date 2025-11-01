@@ -40,6 +40,10 @@ app.use((err, req, res, next) => {
 // Connect to database
 connectDB();
 
+app.get("/", (req, res) => {  
+  res.send("Welcome to the Expense Splitter API");
+});
+
 // Start server (only if not in serverless environment)
 const PORT = process.env.PORT || 5000;
 

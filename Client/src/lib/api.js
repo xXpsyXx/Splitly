@@ -1,4 +1,26 @@
-const API_URL = import.meta.env.VITE_API_URL || "/api";
+// Determine API base URL:
+// - Prefer explicit VITE_API_URL when provided at build time
+// - If not provided and we're running in browser on Vercel, default to Railway backend
+// - Otherwise fall back to relative "/api" (good for same-origin serverless functions)
+let API_URL = import.meta.env.VITE_API_URL || "";
+
+if (!API_URL) {
+  // runtime-detect in the browser
+  const isBrowser = typeof window !== "undefined" && window?.location;
+  if (isBrowser) {
+    const host = window.location.hostname || "";
+    // if deployed on vercel, point to the Railway production backend you provided
+    if (host.includes("vercel.app")) {
+      API_URL = "https://splitly-production.up.railway.app/api";
+    } else {
+      // default for other hosts: call same-origin serverless functions
+      API_URL = "/api";
+    }
+  } else {
+    // server/build-time fallback
+    API_URL = "/api";
+  }
+}
 
 const getAuthToken = () => {
   return localStorage.getItem("token");
