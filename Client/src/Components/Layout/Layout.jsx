@@ -1,4 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
+import { useEffect } from "react";
+import { api } from "../../lib/api";
 
 export default function Layout({ children, user, onLogout }) {
   const location = useLocation();
@@ -17,9 +19,7 @@ export default function Layout({ children, user, onLogout }) {
           <div className="flex justify-between h-16">
             <div className="flex">
               <div className="shrink-0 flex items-center">
-                <h1 className="text-xl font-bold text-indigo-600">
-                  Splitly
-                </h1>
+                <h1 className="text-xl font-bold text-indigo-600">Splitly</h1>
               </div>
               <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
                 {navLinks.map((link) => (
@@ -52,4 +52,15 @@ export default function Layout({ children, user, onLogout }) {
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">{children}</main>
     </div>
   );
+}
+
+// Prefetch some common data when the layout mounts to make page switches feel faster
+export function LayoutWithPrefetch(props) {
+  useEffect(() => {
+    // warm groups and friends cache in background
+    api.getGroups().catch(() => {});
+    api.getFriends().catch(() => {});
+  }, []);
+
+  return <Layout {...props} />;
 }

@@ -22,6 +22,9 @@ if (API_URL && API_URL.endsWith("/api")) {
 // ✅ Add token getter
 const getAuthToken = () => localStorage.getItem("token");
 
+// cache helper
+import { cacheService } from "./cache";
+
 // ✅ General API call wrapper
 const apiCall = async (endpoint, options = {}) => {
   const token = getAuthToken();
@@ -66,10 +69,35 @@ export const api = {
       body: JSON.stringify({ name, email, password }),
     }),
 
-  getCurrentUser: () => apiCall("/api/auth/me"),
+  getCurrentUser: async () => {
+    const key = "currentUser";
+    const cached = cacheService.get(key);
+    if (cached) {
+      // revalidate in background
+      apiCall("/api/auth/me")
+        .then((d) => cacheService.set(key, d))
+        .catch(() => {});
+      return cached;
+    }
+    const data = await apiCall("/api/auth/me");
+    cacheService.set(key, data);
+    return data;
+  },
 
   // Friends
-  getFriends: () => apiCall("/api/friends"),
+  getFriends: async () => {
+    const key = "friends";
+    const cached = cacheService.get(key);
+    if (cached) {
+      apiCall("/api/friends")
+        .then((d) => cacheService.set(key, d))
+        .catch(() => {});
+      return cached;
+    }
+    const data = await apiCall("/api/friends");
+    cacheService.set(key, data);
+    return data;
+  },
   sendFriendRequest: (email) =>
     apiCall("/api/friends/request", {
       method: "POST",
@@ -80,30 +108,91 @@ export const api = {
   getPendingRequests: () => apiCall("/api/friends/pending"),
 
   // Groups
-  getGroups: () => apiCall("/api/groups"),
-  getGroup: (id) => apiCall(`/api/groups/${id}`),
-  createGroup: (name, description, memberIds) =>
-    apiCall("/api/groups", {
+  getGroups: async () => {
+    const key = "groups";
+    const cached = cacheService.get(key);
+    if (cached) {
+      apiCall("/api/groups")
+        .then((d) => cacheService.set(key, d))
+        .catch(() => {});
+      return cached;
+    }
+    const data = await apiCall("/api/groups");
+    cacheService.set(key, data);
+    return data;
+  },
+
+  getGroup: async (id) => {
+    const key = `group:${id}`;
+    const cached = cacheService.get(key);
+    if (cached) {
+      apiCall(`/api/groups/${id}`)
+        .then((d) => cacheService.set(key, d))
+        .catch(() => {});
+      return cached;
+    }
+    const data = await apiCall(`/api/groups/${id}`);
+    cacheService.set(key, data);
+    return data;
+  },
+
+  createGroup: async (name, description, memberIds) => {
+    const data = await apiCall("/api/groups", {
       method: "POST",
       body: JSON.stringify({ name, description, memberIds }),
-    }),
-  addGroupMember: (groupId, userId) =>
-    apiCall(`/api/groups/${groupId}/members`, {
+    });
+    // invalidate related caches
+    cacheService.clear("groups");
+    return data;
+  },
+  addGroupMember: async (groupId, userId) => {
+    const data = await apiCall(`/api/groups/${groupId}/members`, {
       method: "POST",
       body: JSON.stringify({ userId }),
-    }),
-  removeGroupMember: (groupId, userId) =>
-    apiCall(`/api/groups/${groupId}/members/${userId}`, { method: "DELETE" }),
+    });
+    cacheService.clear("groups");
+    cacheService.clear(`group:${groupId}`);
+    return data;
+  },
+
+  removeGroupMember: async (groupId, userId) => {
+    const data = await apiCall(`/api/groups/${groupId}/members/${userId}`, {
+      method: "DELETE",
+    });
+    cacheService.clear("groups");
+    cacheService.clear(`group:${groupId}`);
+    return data;
+  },
 
   // Expenses
-  getExpenses: (groupId) =>
-    apiCall(groupId ? `/api/expenses?groupId=${groupId}` : "/api/expenses"),
+  getExpenses: async (groupId) => {
+    const key = `expenses:${groupId || "all"}`;
+    const cached = cacheService.get(key);
+    const endpoint = groupId
+      ? `/api/expenses?groupId=${groupId}`
+      : "/api/expenses";
+    if (cached) {
+      apiCall(endpoint)
+        .then((d) => cacheService.set(key, d))
+        .catch(() => {});
+      return cached;
+    }
+    const data = await apiCall(endpoint);
+    cacheService.set(key, data);
+    return data;
+  },
   getExpense: (id) => apiCall(`/api/expenses/${id}`),
-  createExpense: (expenseData) =>
-    apiCall("/api/expenses", {
+  createExpense: async (expenseData) => {
+    const data = await apiCall("/api/expenses", {
       method: "POST",
       body: JSON.stringify(expenseData),
-    }),
+    });
+    // invalidate expenses cache for the group (if present)
+    if (expenseData?.groupId) {
+      cacheService.clear(`expenses:${expenseData.groupId}`);
+    }
+    return data;
+  },
   deleteExpense: (id) => apiCall(`/api/expenses/${id}`, { method: "DELETE" }),
 
   // Transactions

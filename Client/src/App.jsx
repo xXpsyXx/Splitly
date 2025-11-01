@@ -5,7 +5,7 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
-import Layout from "./Components/Layout/Layout";
+import { LayoutWithPrefetch as Layout } from "./Components/Layout/Layout";
 import Login from "./Components/Pages/Login";
 import Signup from "./Components/Pages/Signup";
 import Dashboard from "./Components/Pages/Dashboard";
