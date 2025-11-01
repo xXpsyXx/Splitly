@@ -85,7 +85,7 @@ export const api = {
   createGroup: (name, description, memberIds) =>
     apiCall("/api/groups", {
       method: "POST",
-      body: JSON.stringify({ name, email, password }),
+      body: JSON.stringify({ name, description, memberIds }),
     }),
   addGroupMember: (groupId, userId) =>
     apiCall(`/api/groups/${groupId}/members`, {
