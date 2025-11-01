@@ -39,6 +39,16 @@ export default function Groups({ user }) {
     }
   };
 
+  const toggleMember = (userId) => {
+    if (!userId) return; // safety
+    setFormData((prev) => ({
+      ...prev,
+      memberIds: prev.memberIds.includes(userId)
+        ? prev.memberIds.filter((id) => id !== userId)
+        : [...prev.memberIds, userId],
+    }));
+  };
+
   const handleCreateGroup = async (e) => {
     e.preventDefault();
     setError("");
@@ -55,15 +65,6 @@ export default function Groups({ user }) {
     } catch (err) {
       setError(err.message || "Failed to create group");
     }
-  };
-
-  const toggleMember = (friendId) => {
-    setFormData((prev) => ({
-      ...prev,
-      memberIds: prev.memberIds.includes(friendId)
-        ? prev.memberIds.filter((id) => id !== friendId)
-        : [...prev.memberIds, friendId],
-    }));
   };
 
   if (loading) {
@@ -132,17 +133,13 @@ export default function Groups({ user }) {
                   ) : (
                     friends.map((friend) => (
                       <label
-                        key={friend.id}
+                        key={friend.user._id}
                         className="flex items-center p-2 hover:bg-gray-50 rounded cursor-pointer"
                       >
                         <input
                           type="checkbox"
-                          checked={formData.memberIds.includes(
-                            friend.user.id || friend.user._id
-                          )}
-                          onChange={() =>
-                            toggleMember(friend.user.id || friend.user._id)
-                          }
+                          checked={formData.memberIds.includes(friend.user._id)}
+                          onChange={() => toggleMember(friend.user._id)}
                           className="mr-2"
                         />
                         <span>{friend.user.name}</span>
