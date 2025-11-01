@@ -14,6 +14,11 @@ if (!API_URL) {
   }
 }
 
+// Normalize API_URL: remove trailing /api to avoid duplicated paths when endpoints include /api
+if (API_URL && API_URL.endsWith("/api")) {
+  API_URL = API_URL.replace(/\/api\/?$/, "");
+}
+
 // ✅ Add token getter
 const getAuthToken = () => localStorage.getItem("token");
 
