@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { api } from "../../lib/api";
+import CenteredToast from "../Common/CenteredToast";
 
 export default function GroupDetail({ user }) {
   const { id } = useParams();
@@ -18,6 +19,7 @@ export default function GroupDetail({ user }) {
   const [newMemberEmail, setNewMemberEmail] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
     loadGroup();
@@ -101,6 +103,7 @@ export default function GroupDetail({ user }) {
       });
       setShowExpenseModal(false);
       loadExpenses();
+      setSuccessMessage("Expense has been added");
     } catch (err) {
       setError(err.message || "Failed to create expense");
     }
@@ -370,6 +373,14 @@ export default function GroupDetail({ user }) {
             </form>
           </div>
         </div>
+      )}
+
+      {successMessage && (
+        <CenteredToast
+          message={successMessage}
+          duration={2000}
+          onDone={() => setSuccessMessage("")}
+        />
       )}
 
       {showAddMemberModal && (

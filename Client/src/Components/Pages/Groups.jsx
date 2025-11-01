@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../../lib/api";
+import CenteredToast from "../Common/CenteredToast";
 
 export default function Groups({ user }) {
   const [groups, setGroups] = useState([]);
@@ -13,6 +14,7 @@ export default function Groups({ user }) {
   const [friends, setFriends] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
     loadGroups();
@@ -62,6 +64,8 @@ export default function Groups({ user }) {
       setFormData({ name: "", description: "", memberIds: [] });
       setShowCreateModal(false);
       loadGroups();
+      // show centered success toast
+      setSuccessMessage("Group has been created");
     } catch (err) {
       setError(err.message || "Failed to create group");
     }
@@ -170,6 +174,14 @@ export default function Groups({ user }) {
             </form>
           </div>
         </div>
+      )}
+
+      {successMessage && (
+        <CenteredToast
+          message={successMessage}
+          duration={2000}
+          onDone={() => setSuccessMessage("")}
+        />
       )}
 
       {groups.length === 0 ? (
