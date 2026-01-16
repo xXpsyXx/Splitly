@@ -19,8 +19,8 @@
       "destination": "/api/server.js" 
     },
     { 
-      "source": "/((?!api).*)", 
-      "destination": "/Client/index.html" 
+      "source": "/((?!api|.*\\..*).*)", 
+      "destination": "/index.html" 
     }
   ],
   "env": {
